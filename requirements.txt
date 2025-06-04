@@ -4,29 +4,18 @@ langchain==0.1.20
 langchain-openai==0.1.6
 langchain-experimental==0.0.58
 langchainhub==0.1.15
-pypdf
-faiss-cpu
-python-dotenv
-pydantic
-beautifulsoup4
-wikipedia
-arxiv
-stackapi
-pandas
-tabulate
-tiktoken
-langchain_chroma
-streamlit
-os
-textwrap
-ChatPromptTemplate
-create_stuff_documents_chain
-PyPDFLoader
-ChatOpenAI
-RecursiveCharacterTextSplitter
-RetrievalQA
-OpenAIEmbeddings
-List
-Document
-tiktoken
-streamlit
+import os  # Importa o módulo 'os' para interagir com o sistema operacional, como acessar variáveis de ambiente.
+import textwrap
+from dotenv import load_dotenv  # Importa a função 'load_dotenv' do pacote 'dotenv' para carregar variáveis de ambiente de um arquivo .env.
+from langchain_chroma import Chroma
+from langchain_core.prompts import ChatPromptTemplate  # Importa 'ChatPromptTemplate' da LangChain para criar templates de prompts para modelos de chat.
+from langchain.chains.combine_documents import create_stuff_documents_chain  # Importa a função para criar uma cadeia que "recheia" (stuff) documentos no prompt.
+from langchain_community.document_loaders.pdf import PyPDFLoader  # Importa 'PyPDFLoader' da LangChain para carregar documentos PDF.
+from langchain_openai import ChatOpenAI  # Importa 'ChatOpenAI' para interagir com os modelos de chat da OpenAI.
+from langchain.text_splitter import RecursiveCharacterTextSplitter  # Importa 'RecursiveCharacterTextSplitter' para dividir textos grandes em pedaços menores.
+from langchain.chains.retrieval_qa.base import RetrievalQA
+from langchain_openai import OpenAIEmbeddings
+from typing import List
+from langchain_core.documents import Document
+import tiktoken
+import streamlit as st
