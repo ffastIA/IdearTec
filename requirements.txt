@@ -17,3 +17,16 @@ tabulate
 tiktoken
 langchain_chroma
 streamlit
+os
+textwrap
+ChatPromptTemplate
+create_stuff_documents_chain
+PyPDFLoader
+ChatOpenAI
+RecursiveCharacterTextSplitter
+RetrievalQA
+OpenAIEmbeddings
+List
+Document
+tiktoken
+streamlit
