@@ -2,3 +2,4 @@ python-dotenv
 langchain
 langchain-core
 langchain-chroma
+sqlite3 >= 3.35.0
