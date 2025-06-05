@@ -28,7 +28,7 @@ def cria_vector_store_chroma(chunks: List[Document]):
 
 def cria_vector_store_faiss(chunks: List[Document]):
     """cria a vector store"""
-    vectorsore = FAISS.from_documents(
+    vectorstore = FAISS.from_documents(
         chunks,
         embeddings_model
     )
