@@ -19,12 +19,12 @@ from langchain_community.vectorstores import FAISS
 
 def cria_vector_store_chroma(chunks: List[Document]):
     """cria a vector store"""
-    vectorsore = Chroma.from_documents(
+    vectorstore = Chroma.from_documents(
         documents = chunks,
         embedding = embeddings_model,
         persist_directory=diretorio_vectorestore
     )
-    return vectorsore
+    return vectorstore
 
 def cria_vector_store_faiss(chunks: List[Document]):
     """cria a vector store"""
@@ -33,20 +33,19 @@ def cria_vector_store_faiss(chunks: List[Document]):
         embeddings_model
     )
     vectorstore.save_local("diretorio_vectorestore_faiss")
-    return vectorsore
+    return vectorstore
 
 def carrega_vector_store_chroma():
     """cria a vector store"""
-    vectorsore = Chroma(
+    vectorstore = Chroma(
         embedding_function = embeddings_model,
         persist_directory=diretorio_vectorestore_chroma
     )
-    return vectorsore
+    return vectorstore
 
 def carrega_vector_store_faiss(diretorio_vectorestore_faiss, embeddings):
-    vectorsore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings)
-    return vectorsore
-
+    vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings)
+    return vectorstore
 
 
 # 1. Defina a função de contagem de tokens usando tiktoken
@@ -189,38 +188,37 @@ elif escolha == 4:
 
 elif escolha == 1:
     pergunta = st.text_input("Digite sua pergunta:")
-    if pergunta:
-        vectorstore = carrega_vector_store_faiss()
-        chat = ChatOpenAI(model=modelo)
-        chat_chain = RetrievalQA.from_chain_type(
-            llm=chat,
-            chain_type='stuff',
-            retriever=vectorstore.as_retriever(search_type='mmr'),
-            return_source_documents=True
-        )
-        resposta_do_chat = chat_chain.invoke({'query': pergunta})
-        resposta_llm = resposta_do_chat.get('result', 'Nenhuma resposta disponível.')
-        resposta_formatada = textwrap.fill(resposta_llm, width=120)
-        st.write(resposta_formatada)
+    vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
+    chat = ChatOpenAI(model=modelo)
+    chat_chain = RetrievalQA.from_chain_type(
+        llm=chat,
+        chain_type='stuff',
+        retriever=vectorstore.as_retriever(search_type='mmr'),
+        return_source_documents=True
+    )
+    resposta_do_chat = chat_chain.invoke({'query': pergunta})
+    resposta_llm = resposta_do_chat.get('result', 'Nenhuma resposta disponível.')
+    resposta_formatada = textwrap.fill(resposta_llm, width=120)
+    st.write(resposta_formatada)
 
-        # # 3. Acesse e imprima os documentos fonte (se disponíveis)
-        # print("\n--- Documentos Fonte Utilizados ---")
-        # if 'source_documents' in resposta_do_chat:
-        #     if resposta_do_chat['source_documents']:
-        #         for i, doc in enumerate(resposta_do_chat['source_documents']):
-        #             print(
-        #                 f"\nDocumento {i + 1} (Fonte: {doc.metadata.get('source', 'N/A')} - Página: {doc.metadata.get('page', 'N/A')}):")
-        #             # O conteúdo do documento também pode ser longo, formate-o se necessário
-        #             doc_content_formatted = textwrap.fill(doc.page_content, width=90)
-        #             print(doc_content_formatted[:500] + "...")  # Imprime os primeiros 500 caracteres (formatados)
-        #     else:
-        #         print("Nenhum documento fonte foi utilizado ou encontrado.")
-        # else:
-        #     print(
-        #         "A chave 'source_documents' não foi encontrada na resposta. Certifique-se de que 'return_source_documents=True' está configurado.")
-        #
-        # print("\n--- Resposta Completa (Dicionário Bruto) ---")
-        # print(resposta_do_chat)
+    # # 3. Acesse e imprima os documentos fonte (se disponíveis)
+    # print("\n--- Documentos Fonte Utilizados ---")
+    # if 'source_documents' in resposta_do_chat:
+    #     if resposta_do_chat['source_documents']:
+    #         for i, doc in enumerate(resposta_do_chat['source_documents']):
+    #             print(
+    #                 f"\nDocumento {i + 1} (Fonte: {doc.metadata.get('source', 'N/A')} - Página: {doc.metadata.get('page', 'N/A')}):")
+    #             # O conteúdo do documento também pode ser longo, formate-o se necessário
+    #             doc_content_formatted = textwrap.fill(doc.page_content, width=90)
+    #             print(doc_content_formatted[:500] + "...")  # Imprime os primeiros 500 caracteres (formatados)
+    #     else:
+    #         print("Nenhum documento fonte foi utilizado ou encontrado.")
+    # else:
+    #     print(
+    #         "A chave 'source_documents' não foi encontrada na resposta. Certifique-se de que 'return_source_documents=True' está configurado.")
+    #
+    # print("\n--- Resposta Completa (Dicionário Bruto) ---")
+    # print(resposta_do_chat)
 
 elif escolha == 2:
     print("Saindo do programa. Até mais!")  # Mensagem de despedida.
