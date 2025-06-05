@@ -1,5 +1,7 @@
-python-dotenv
-langchain
-langchain-core
+python-dotenv~=1.1.0
+langchain~=0.3.25
+langchain-core~=0.3.63
 langchain-chroma
 sqlite3 >= 3.50.0
+streamlit~=1.45.1
+pypdf
