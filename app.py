@@ -78,7 +78,7 @@ diretorio_vectorestore_faiss = 'vectorestore_faiss'
 
 # --- Carregamento do Documento PDF ---
 # Define o caminho para o arquivo PDF no sistema de arquivos.
-caminho_arquivo = r"IdearTec1.pdf"
+caminho_arquivo = r"IdearTec_RAG.pdf"
 
 print(f"Carregando documentos do PDF: {caminho_arquivo}")  # Informa o usuário sobre o carregamento do PDF.
 try:  # Inicia um bloco try-except para lidar com possíveis erros durante o carregamento do arquivo.
@@ -104,8 +104,8 @@ except FileNotFoundError:  # Captura o erro específico se o arquivo PDF não fo
 # o contexto ainda usa 'documentos[:10]' e não os 'chunks' criados por este splitter.
 # Para utilizar os chunks, seria necessário adaptar a forma como o 'context' é passado para 'chain.invoke'.
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=200,  # Tamanho máximo do chunk em tokens (usando a função de contagem do módulo 'tokens').
-    chunk_overlap=20,  # Sobreposição em tokens entre chunks.
+    chunk_size=500,  # Tamanho máximo do chunk em tokens (usando a função de contagem do módulo 'tokens').
+    chunk_overlap=50,  # Sobreposição em tokens entre chunks.
     length_function= num_tokens_from_string,  # Nossa função personalizada de contagem de tokens.
     separators= ['\n\n','\n','.', ' '],
     add_start_index=True  # Adiciona o índice de início de cada chunk no texto original como metadado.
