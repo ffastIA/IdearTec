@@ -22,7 +22,7 @@ def cria_vector_store_chroma(chunks: List[Document]):
     vectorstore = Chroma.from_documents(
         documents = chunks,
         embedding = embeddings_model,
-        persist_directory=diretorio_vectorestore
+        persist_directory=diretorio_vectorestore_chroma
     )
     return vectorstore
 
@@ -32,7 +32,7 @@ def cria_vector_store_faiss(chunks: List[Document]):
         chunks,
         embeddings_model
     )
-    vectorstore.save_local("diretorio_vectorestore_faiss")
+    vectorstore.save_local(diretorio_vectorestore_faiss)
     return vectorstore
 
 def carrega_vector_store_chroma():
@@ -43,8 +43,8 @@ def carrega_vector_store_chroma():
     )
     return vectorstore
 
-def carrega_vector_store_faiss(diretorio_vectorestore_faiss, embeddings):
-    vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings)
+def carrega_vector_store_faiss(diretorio_vectorestore_faiss, embeddings_model):
+    vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model)
     return vectorstore
 
 
@@ -73,7 +73,7 @@ embeddings_model = OpenAIEmbeddings()
 
 #diretório onde será criada a vectore store
 diretorio_vectorestore_chroma = 'VectorStoreChroma'
-diretorio_vectorestore_faiss = 'VectorStoreFaiss'
+diretorio_vectorestore_faiss = 'vectorestore_faiss'
 
 
 # --- Carregamento do Documento PDF ---
@@ -153,41 +153,51 @@ chain = create_stuff_documents_chain(llm=chat, prompt=qa_prompt)
 
 # --- Loop Principal para Interação com o Usuário ---
 # while True:  # Inicia um loop infinito que só será interrompido pela escolha do usuário.
-    # print("\n--- Menu de Opções ---")
-    # print("1. Criar vector store")
-    # print("2. Carrega vector store")
-    # print("3. Fazer uma pergunta ao documento")
-    # print("4. Sair")
+#     print("\n--- Menu de Opções ---")
+#     print("1. Criar vector store")
+#     print("2. Carrega vector store")
+#     print("3. Fazer uma pergunta ao documento")
+#     print("4. Sair")
+
+vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
+# print(vectorstore.index.ntotal)
+# print("Vector Store carregado com sucesso!!!")
+st.write(vectorstore.index.ntotal)
+st.write("Vector Store carregado com sucesso!!!")
+
 
 st.write("\n--- Menu de Opções ---")
-
 # st.write("2. Carrega base de dados")
 st.write("1. Fazer uma pergunta sobre o projeto")
 st.write("2. Limpar")
-st.write("3. Criar base de dados")
+# st.write("3. Criar base de dados")
 
-# escolha = input("Digite sua opção (1 , 2 , 3 ou 4): ").strip()  # Captura a escolha do usuário e remove espaços em branco.
+    # escolha = input("Digite sua opção (1 , 2 , 3 ou 4): ").strip()  # Captura a escolha do usuário e remove espaços em branco.
 
-# Usa session_state para evitar recriação com mesma key
+# # Usa session_state para evitar recriação com mesma key
 if "escolha" not in st.session_state:
     st.session_state["escolha"] = 2
 
-escolha = st.number_input("Escolha uma opção:", min_value=1, max_value=3, value=2)
+escolha = st.number_input("Escolha uma opção:", min_value=1, max_value=2, value=2)
 st.session_state["escolha"] = escolha
 
-if escolha == 3:
-    vectorstore = cria_vector_store_faiss(chunks)
-    num_chunks = len(vectorstore.index_to_docstore_id)
-    st.write(f"Número de chunks no FAISS: {num_chunks}")
-    st.write("Vector Store criado com sucesso!!!")
+# if escolha == '1':
+#     vectorstore = cria_vector_store_faiss(chunks)
+#     num_chunks = len(vectorstore.index_to_docstore_id)
+#     print(f"Número de chunks no FAISS: {num_chunks}")
+#     print("Vector Store criado com sucesso!!!")
+#     # st.write(f"Número de chunks no FAISS: {num_chunks}")
+#     # st.write("Vector Store criado com sucesso!!!")
 
-elif escolha == 4:
-    vectorstore = carrega_vector_store_faiss()
-    st.write(vectorstore._collection.count())
-    st.write("Vector Store carregado com sucesso!!!")
+if escolha == 2:
+    st.session_state["escolha"] = escolha
+    # vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
+    # print(vectorstore.index.ntotal)
+    # print("Vector Store carregado com sucesso!!!")
 
 elif escolha == 1:
-    pergunta = st.text_input("Digite sua pergunta:")
+    # pergunta = input("Digite sua pergunta:")
+    pergunta = st.text_input("Digite sua pergunta: ")
     vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
     chat = ChatOpenAI(model=modelo)
     chat_chain = RetrievalQA.from_chain_type(
@@ -199,6 +209,7 @@ elif escolha == 1:
     resposta_do_chat = chat_chain.invoke({'query': pergunta})
     resposta_llm = resposta_do_chat.get('result', 'Nenhuma resposta disponível.')
     resposta_formatada = textwrap.fill(resposta_llm, width=120)
+    # print(resposta_formatada)
     st.write(resposta_formatada)
 
     # # 3. Acesse e imprima os documentos fonte (se disponíveis)
@@ -220,10 +231,11 @@ elif escolha == 1:
     # print("\n--- Resposta Completa (Dicionário Bruto) ---")
     # print(resposta_do_chat)
 
-elif escolha == 2:
-    print("Saindo do programa. Até mais!")  # Mensagem de despedida.
-    # break  # Sai do loop 'while True', encerrando o programa.
+
+# elif escolha == 4:
+#     st.write("Saindo do programa. Até mais!")  # Mensagem de despedida.
+
 
 else:
-    print("Opção inválida. Por favor, digite 1 ou 2.")  # Informa o usuário sobre uma entrada inválida.
-
+    # print("Opção inválida. Por favor, digite 1 ou 2.")  # Informa o usuário sobre uma entrada inválida.
+    st.write("Opção inválida. Por favor, digite 1 ou 2.")  # Informa o usuário sobre uma entrada inválida.
