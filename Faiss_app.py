@@ -43,6 +43,8 @@ load_dotenv()  # Carrega as variáveis de ambiente do arquivo .env (se existir) 
 openai_key = os.getenv(
     'OPENAI_API_KEY')  # Tenta obter a chave da API da OpenAI da variável de ambiente 'OPENAI_API_KEY'.
 
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+
 # Verifica se a chave da API foi carregada com sucesso.
 if not openai_key:  # Se a chave não for encontrada, levanta um erro para alertar o usuário.
     raise ValueError("A variável de ambiente 'OPENAI_API_KEY' não foi encontrada no seu arquivo .env.")
