@@ -137,7 +137,7 @@ chat = ChatOpenAI(
 # --- Criação do Prompt Template ---
 qa_prompt = ChatPromptTemplate.from_messages([
     ("system",
-     ("Você é um assistente prestativo. Use o seguinte contexto para responder à pergunta. Se a resposta não" 
+     ("Você é um assistente prestativo. Use o seguinte contexto para responder à pergunta. Cada tópico está entre 2 aspas e as respostas encontram-se logo abaixo do tópico. Se a resposta não" 
      " estiver no contexto, diga que não sabe:\n\n{context}")),
     # Define a mensagem do sistema, instruindo o modelo sobre seu papel e comportamento.
     # '{context}' é um placeholder para o conteúdo dos documentos.
