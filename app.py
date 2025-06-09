@@ -1,7 +1,6 @@
 import os  # Importa o módulo 'os' para interagir com o sistema operacional, como acessar variáveis de ambiente.
 import textwrap
 from dotenv import load_dotenv  # Importa a função 'load_dotenv' do pacote 'dotenv' para carregar variáveis de ambiente de um arquivo .env.
-from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate  # Importa 'ChatPromptTemplate' da LangChain para criar templates de prompts para modelos de chat.
 from langchain.chains.combine_documents import create_stuff_documents_chain  # Importa a função para criar uma cadeia que "recheia" (stuff) documentos no prompt.
 from langchain_community.document_loaders.pdf import PyPDFLoader  # Importa 'PyPDFLoader' da LangChain para carregar documentos PDF.
@@ -17,15 +16,6 @@ from langchain_community.vectorstores import FAISS
 
 
 
-def cria_vector_store_chroma(chunks: List[Document]):
-    """cria a vector store"""
-    vectorstore = Chroma.from_documents(
-        documents = chunks,
-        embedding = embeddings_model,
-        persist_directory=diretorio_vectorestore_chroma
-    )
-    return vectorstore
-
 def cria_vector_store_faiss(chunks: List[Document]):
     """cria a vector store"""
     vectorstore = FAISS.from_documents(
@@ -33,14 +23,6 @@ def cria_vector_store_faiss(chunks: List[Document]):
         embeddings_model
     )
     vectorstore.save_local(diretorio_vectorestore_faiss)
-    return vectorstore
-
-def carrega_vector_store_chroma():
-    """cria a vector store"""
-    vectorstore = Chroma(
-        embedding_function = embeddings_model,
-        persist_directory=diretorio_vectorestore_chroma
-    )
     return vectorstore
 
 def carrega_vector_store_faiss(diretorio_vectorestore_faiss, embeddings_model):
@@ -61,6 +43,8 @@ load_dotenv()  # Carrega as variáveis de ambiente do arquivo .env (se existir) 
 openai_key = os.getenv(
     'OPENAI_API_KEY')  # Tenta obter a chave da API da OpenAI da variável de ambiente 'OPENAI_API_KEY'.
 
+# openai_api_key = st.secrets["OPENAI_API_KEY"]
+
 # Verifica se a chave da API foi carregada com sucesso.
 if not openai_key:  # Se a chave não for encontrada, levanta um erro para alertar o usuário.
     raise ValueError("A variável de ambiente 'OPENAI_API_KEY' não foi encontrada no seu arquivo .env.")
@@ -72,13 +56,12 @@ modelo='gpt-3.5-turbo-0125'
 embeddings_model = OpenAIEmbeddings()
 
 #diretório onde será criada a vectore store
-diretorio_vectorestore_chroma = 'VectorStoreChroma'
 diretorio_vectorestore_faiss = 'vectorestore_faiss'
 
 
 # --- Carregamento do Documento PDF ---
 # Define o caminho para o arquivo PDF no sistema de arquivos.
-caminho_arquivo = r"IdearTec_RAG.pdf"
+caminho_arquivo = r'BIA_RAG.pdf'
 
 print(f"Carregando documentos do PDF: {caminho_arquivo}")  # Informa o usuário sobre o carregamento do PDF.
 try:  # Inicia um bloco try-except para lidar com possíveis erros durante o carregamento do arquivo.
@@ -107,7 +90,7 @@ text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=500,  # Tamanho máximo do chunk em tokens (usando a função de contagem do módulo 'tokens').
     chunk_overlap=50,  # Sobreposição em tokens entre chunks.
     length_function= num_tokens_from_string,  # Nossa função personalizada de contagem de tokens.
-    separators= ['\n\n','\n','.', ' '],
+    separators= ['&', '\n\n','.', ' '],
     add_start_index=True  # Adiciona o índice de início de cada chunk no texto original como metadado.
 )
 
@@ -137,8 +120,9 @@ chat = ChatOpenAI(
 # --- Criação do Prompt Template ---
 qa_prompt = ChatPromptTemplate.from_messages([
     ("system",
-     ("Você é um assistente prestativo. Use o seguinte contexto para responder à pergunta. Cada tópico está entre 2 aspas e as respostas encontram-se logo abaixo do tópico. Se a resposta não" 
-     " estiver no contexto, diga que não sabe:\n\n{context}")),
+     ("Você é um assistente especialista no contexto fornecido. Use o seguinte contexto para responder à pergunta."
+     "Os tópicos principais estão destacado entre aspas duplas. Se a resposta não" 
+     " estiver no contexto, diga que não sabe e peça mais detalhes para o questionamento:\n\n{context}")),
     # Define a mensagem do sistema, instruindo o modelo sobre seu papel e comportamento.
     # '{context}' é um placeholder para o conteúdo dos documentos.
     ("user", "{question}")
@@ -159,41 +143,46 @@ while True:  # Inicia um loop infinito que só será interrompido pela escolha d
     print("3. Fazer uma pergunta ao documento")
     print("4. Sair")
 
+    # vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
+    # print(vectorstore.index.ntotal)
+    # print("Vector Store carregado com sucesso!!!")
+    # st.write(vectorstore.index.ntotal)
+    # st.write("Vector Store carregado com sucesso!!!")
+
+
 # st.write("\n--- Menu de Opções ---")
-#
 # # st.write("2. Carrega base de dados")
 # st.write("1. Fazer uma pergunta sobre o projeto")
 # st.write("2. Limpar")
-# st.write("3. Criar base de dados")
+# # st.write("3. Criar base de dados")
 
     escolha = input("Digite sua opção (1 , 2 , 3 ou 4): ").strip()  # Captura a escolha do usuário e remove espaços em branco.
 
-    # # Usa session_state para evitar recriação com mesma key
-    # if "escolha" not in st.session_state:
-    #     st.session_state["escolha"] = 2
-    #
-    # escolha = st.number_input("Escolha uma opção:", min_value=1, max_value=3, value=2)
-    # st.session_state["escolha"] = escolha
+# # Usa session_state para evitar recriação com mesma key
+# if "escolha" not in st.session_state:
+#     st.session_state["escolha"] = 2
+#
+# escolha = st.number_input("Escolha uma opção:", min_value=1, max_value=2, value=2)
+# st.session_state["escolha"] = escolha
 
     if escolha == '1':
         vectorstore = cria_vector_store_faiss(chunks)
         num_chunks = len(vectorstore.index_to_docstore_id)
         print(f"Número de chunks no FAISS: {num_chunks}")
         print("Vector Store criado com sucesso!!!")
-        # st.write(f"Número de chunks no FAISS: {num_chunks}")
-        # st.write("Vector Store criado com sucesso!!!")
+#     # st.write(f"Número de chunks no FAISS: {num_chunks}")
+#     # st.write("Vector Store criado com sucesso!!!")
 
-    elif escolha == '2':
+    if escolha == '2':
+        # st.session_state["escolha"] = escolha
         vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
         print(vectorstore.index.ntotal)
         print("Vector Store carregado com sucesso!!!")
-        # st.write(vectorstore.index.ntotal)
-        # st.write("Vector Store carregado com sucesso!!!")
 
     elif escolha == '3':
-        pergunta = input("Digite sua pergunta:")
-        # pergunta = st.text_input("Digite sua pergunta:")
-        # vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
+        # pergunta = input("Digite sua pergunta:")
+        pergunta = st.text_input("Digite sua pergunta: ")
+        vectorstore = FAISS.load_local(diretorio_vectorestore_faiss, embeddings_model, allow_dangerous_deserialization=True)
         chat = ChatOpenAI(model=modelo)
         chat_chain = RetrievalQA.from_chain_type(
             llm=chat,
@@ -207,31 +196,10 @@ while True:  # Inicia um loop infinito que só será interrompido pela escolha d
         print(resposta_formatada)
         # st.write(resposta_formatada)
 
-        # # 3. Acesse e imprima os documentos fonte (se disponíveis)
-        # print("\n--- Documentos Fonte Utilizados ---")
-        # if 'source_documents' in resposta_do_chat:
-        #     if resposta_do_chat['source_documents']:
-        #         for i, doc in enumerate(resposta_do_chat['source_documents']):
-        #             print(
-        #                 f"\nDocumento {i + 1} (Fonte: {doc.metadata.get('source', 'N/A')} - Página: {doc.metadata.get('page', 'N/A')}):")
-        #             # O conteúdo do documento também pode ser longo, formate-o se necessário
-        #             doc_content_formatted = textwrap.fill(doc.page_content, width=90)
-        #             print(doc_content_formatted[:500] + "...")  # Imprime os primeiros 500 caracteres (formatados)
-        #     else:
-        #         print("Nenhum documento fonte foi utilizado ou encontrado.")
-        # else:
-        #     print(
-        #         "A chave 'source_documents' não foi encontrada na resposta. Certifique-se de que 'return_source_documents=True' está configurado.")
-        #
-        # print("\n--- Resposta Completa (Dicionário Bruto) ---")
-        # print(resposta_do_chat)
-
-
     elif escolha == '4':
-        print("Saindo do programa. Até mais!")  # Mensagem de despedida.
-        break  # Sai do loop 'while True', encerrando o programa.
+        st.write("Saindo do programa. Até mais!")  # Mensagem de despedida.
 
 
     else:
         print("Opção inválida. Por favor, digite 1 ou 2.")  # Informa o usuário sobre uma entrada inválida.
-
+        # st.write("Opção inválida. Por favor, digite 1 ou 2.")  # Informa o usuário sobre uma entrada inválida.
