@@ -61,7 +61,7 @@ diretorio_vectorestore_faiss = 'vectorestore_faiss'
 
 # --- Carregamento do Documento PDF ---
 # Define o caminho para o arquivo PDF no sistema de arquivos.
-caminho_arquivo = r'BIA_RAG.pdf'
+caminho_arquivo = r'IdearTec1.pdf'
 
 print(f"Carregando documentos do PDF: {caminho_arquivo}")  # Informa o usuário sobre o carregamento do PDF.
 try:  # Inicia um bloco try-except para lidar com possíveis erros durante o carregamento do arquivo.

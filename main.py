@@ -13,6 +13,7 @@ from typing import List
 from langchain_core.documents import Document
 import tiktoken
 
+
 # --- Configuração de Variáveis de Ambiente e Chave da API ---
 load_dotenv()  # Carrega as variáveis de ambiente do arquivo .env (se existir) para o ambiente do sistema.
 openai_key = os.getenv(
